@@ -3,58 +3,71 @@
 
 // Плагин ожидает следующую HTML-разметку и показывает четыре цифры: дни, часы, минуты и секунды в формате XX:XX:XX:XX. Количество дней может состоять из более чем двух цифр.
 
-// <div class="timer" id="timer-1">
-//   <div class="field">
-//     <span class="value" data-value="days">11</span>
-//     <span class="label">Days</span>
-//   </div>
-
-//   <div class="field">
-//     <span class="value" data-value="hours">11</span>
-//     <span class="label">Hours</span>
-//   </div>
-
-//   <div class="field">
-//     <span class="value" data-value="mins">11</span>
-//     <span class="label">Minutes</span>
-//   </div>
-
-//   <div class="field">
-//     <span class="value" data-value="secs">11</span>
-//     <span class="label">Seconds</span>
-//   </div>
-// </div>
-
-// Плагин это класс CountdownTimer, экземпляр которого создает новый таймер с настройками.
-
-// new CountdownTimer({
-//   selector: '#timer-1',
-//   targetDate: new Date('Jul 17, 2019'),
-// });
-
 // Для подсчета значений используй следующие готовые формулы, где time - разница между targetDate и текущей датой.
 
-/*
- * Оставшиеся дни: делим значение UTC на 1000 * 60 * 60 * 24, количество
- * миллисекунд в одном дне (миллисекунды * секунды * минуты * часы)
- */
-// const days = Math.floor(time / (1000 * 60 * 60 * 24));
+// Доступы к элементам:
+const refs = {
+  days: document.querySelector('span[data-value="days"]'),
+  hours: document.querySelector('span[data-value="hours"]'),
+  mins: document.querySelector('span[data-value="mins"]'),
+  secs: document.querySelector('span[data-value="secs"]'),
+};
 
-/*
- * Оставшиеся часы: получаем остаток от предыдущего расчета с помощью оператора
- * остатка % и делим его на количество миллисекунд в одном часе
- * (1000 * 60 * 60 = миллисекунды * минуты * секунды)
- */
-// const hours = Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+// создаем объект timer с методам start() для запуска таймера:
+const timer = {
+  intervalId: null, //для остановки интервала сперва нужно получить его Id, затем повесить это свойство на setInterval
 
-/*
- * Оставшиеся минуты: получаем оставшиеся минуты и делим их на количество
- * миллисекунд в одной минуте (1000 * 60 = миллисекунды * секунды)
- */
-// const mins = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
+  start() {
+    setTime(0); //чтобы не показывался исходный textContent из HTML, сразу обнуляем данные в интерфейсе
 
-/*
- * Оставшиеся секунды: получаем оставшиеся секунды и делим их на количество
- * миллисекунд в одной секунде (1000)
- */
-// const secs = Math.floor((time % (1000 * 60)) / 1000);
+    const targetDate = new Date(2020, 11, 31, 23, 59, 59); //дата окончания
+    // console.log(targetDate); //1609451999000
+
+    this.intervalId = setInterval(() => {
+      const currentDate = Date.now(); //текущая дата
+      // console.log(currentDate);
+
+      const time = targetDate - currentDate;
+      // console.log(time);
+
+      setTime(time);
+
+      //когда targetDate достигнут - останавливаем действие setInterval:
+      if (time <= 0) {
+        console.log('clear');
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+        setTime(0);
+      }
+    }, 1000);
+  },
+};
+timer.start();
+
+// Функция для того чтобы формат таймера состоял из указанного количества цифр и каких именно. метод padStart приводит число к строке и изменяет формат:
+function pad(value) {
+  return String(value).padStart(2, '0');
+}
+
+// Функция расчета времени, обурнутая в функцию pad для приведения числа к строке и изменения формата таймера; вызывается в setInterval:
+function setTime(time) {
+  // оставшиеся дни: делим значение UTC на 1000 * 60 * 60 * 24, количество миллисекунд в одном дне (миллисекунды * секунды * минуты * часы)
+  const days = pad(Math.floor(time / (1000 * 60 * 60 * 24)));
+
+  //   оставшиеся часы: получаем остаток от предыдущего расчета с помощью оператора остатка % и делим его на количество миллисекунд в одном часе (1000 * 60 * 60 = миллисекунды * минуты * секунды)
+  const hours = pad(
+    Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+  );
+
+  //  оставшиеся минуты: получаем оставшиеся минуты и делим их на количество миллисекунд в одной минуте (1000 * 60 = миллисекунды * секунды)
+  const mins = pad(Math.floor((time % (1000 * 60 * 60)) / (1000 * 60)));
+
+  //  оставшиеся секунды: получаем оставшиеся секунды и делим их на количество миллисекунд в одной секунде (1000)
+  const secs = pad(Math.floor((time % (1000 * 60)) / 1000));
+
+  // привязываем данные к интерфейсу:
+  refs.days.textContent = `${days}`;
+  refs.hours.textContent = `${hours}`;
+  refs.mins.textContent = `${mins}`;
+  refs.secs.textContent = `${secs}`;
+}
