@@ -13,6 +13,9 @@ const refs = {
   secs: document.querySelector('span[data-value="secs"]'),
 };
 
+const targetDate = new Date(2020, 11, 31, 23, 59, 59); //дата окончания
+// console.log(targetDate); //1609451999000
+
 // создаем объект timer с методам start() для запуска таймера:
 const timer = {
   intervalId: null, //для остановки интервала сперва нужно получить его Id, затем повесить это свойство на setInterval
@@ -20,29 +23,33 @@ const timer = {
   start() {
     setTime(0); //чтобы не показывался исходный textContent из HTML, сразу обнуляем данные в интерфейсе
 
-    const targetDate = new Date(2020, 11, 31, 23, 59, 59); //дата окончания
-    // console.log(targetDate); //1609451999000
+    updateClock(); //переиспользуем функцию для того, чтобы после запуска страницы сразу запускался таймер, чтобы не видеть в течение 1сек 00:00:00:00
 
     this.intervalId = setInterval(() => {
-      const currentDate = Date.now(); //текущая дата
-      // console.log(currentDate);
-
-      const time = targetDate - currentDate;
-      // console.log(time);
-
-      setTime(time);
-
-      //когда targetDate достигнут - останавливаем действие setInterval:
-      if (time <= 0) {
-        console.log('clear');
-        clearInterval(this.intervalId);
-        this.intervalId = null;
-        setTime(0);
-      }
+      updateClock();
     }, 1000);
   },
 };
 timer.start();
+
+// для удобства переиспользования выведем данные, которые используются в setInterval в отдельную функцию:
+function updateClock() {
+  const currentDate = Date.now(); //текущая дата
+  // console.log(currentDate);
+
+  const time = targetDate - currentDate;
+  // console.log(time);
+
+  setTime(time);
+
+  //когда targetDate достигнут - останавливаем действие setInterval:
+  if (time <= 0) {
+    console.log('clear');
+    clearInterval(this.intervalId);
+    this.intervalId = null;
+    setTime(0);
+  }
+}
 
 // Функция для того чтобы формат таймера состоял из указанного количества цифр и каких именно. метод padStart приводит число к строке и изменяет формат:
 function pad(value) {
